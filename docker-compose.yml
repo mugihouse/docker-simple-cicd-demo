@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  api:
+    # container名を決められる
+    container_name: api
+    build: ./api
+    ports:
+      - 8080:8080
+    # docker container run -t の -tの部分を再現
+    tty: true
+    # docker-composeの中では相対パスが使える
+    volumes:
+      # ./apiと/workspaceをバインドマウント
+      # :chachedはvolumeで使えるオプション的な存在
+      # ホストの表示が信頼できる（ホスト上の更新がコンテナ上に反映するまで、遅延が発生するのを許容）。代わりに速い！
+      - ./api:/workspace:chached
+
+  web:
+    container_name: web
+    build:
+      # ビルドコンテキスト
+      context: ./web
+      # 名前を指定してイメージを作成
+      target: base
+    ports:
+      - 3000:3000
+    environment:
+      - REACT_APP_API_SERVER=http://localhost:8080/api
+    tty: true
+    volumes:
+      - ./web:/workspace:chached
+    depends_on:
+      - api
